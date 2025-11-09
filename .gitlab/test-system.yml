@@ -61,7 +61,7 @@ test-system:
     - export PATH="$PATH:$UGHUB_DIR"
     # Install UG4.
     - cd $UG_DIR
-    - ughub init && ughub install ugcore ConvectionDiffusion Limex JSONForUG4 JSONToolkit ProMesh Richards SuperLU6
+    - ughub init && ughub install ugcore ConvectionDiffusion Limex JSONForUG4 JSONToolkit ProMesh Richards SuperLU6 BoostForUG4
     - cd $UG_DIR/plugins/JSONToolkit
     - git submodule update --init --recursive
     - cd $UG_DIR/plugins/SuperLU6
@@ -71,7 +71,7 @@ test-system:
     - cd $UG_DIR/externals/AutodiffForUG4
     - git submodule update --init --recursive
     # Install additional plugins
-    - git clone https://gitlab.com/ug4-project/quadruped/plugin_LevelSet.git $UG_DIR/plugins/plugin_LevelSet
+    - git clone https://gitlab.com/ug4-project/quadruped/plugin_LevelSet.git $UG_DIR/plugins/LevelSet
     - if [[ "$UG_CMAKE_PARALLEL" == "ON" ]]; then git clone https://gitlab.com/ug4-project/quadruped/plugin_Parmetis.git $UG_DIR/plugins/plugin_Parmetis; fi
     - if [[ "$UG_CMAKE_PARALLEL" == "ON" ]]; then git clone https://gitlab.com/ug4-project/quadruped/plugin_Smile.git $UG_DIR/plugins/plugin_Smile; fi
     - git clone https://gitlab.com/ug4-project/plugins/plugin_d3f.git $UG_DIR/plugins/d3f
