@@ -1,0 +1,8 @@
+# reuse.toml - Example for a small project
+
+version = 1
+
+[[annotations]]
+path = "**"
+SPDX-FileCopyrightText = "2010 - 2025 The d3f++ Community"
+SPDX-License-Identifier = "EUPL-1.2"
