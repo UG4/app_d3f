@@ -1,0 +1,14 @@
+deploy-docker:
+  stage: deploy
+  tags:
+    - docker-linux
+  image: docker:latest
+  before_script:
+    - docker info
+    - echo "$CI_REGISTRY"
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  script:
+    - docker build --no-cache --secret id=UG4_ACCESS_TOKEN -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
+  rules:
+    - if: $CI_COMMIT_TAG
