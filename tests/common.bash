@@ -29,6 +29,6 @@ check-vtu() {
     for path in "${expected[@]}"
     do
         name=$(basename $path)
-        python3 $UG4_ROOT/apps/app_d3f/tests/diffvtu.py "$1/$name" "$2/$name" $3 $4
+        python3 $UG4_ROOT/apps/app_d3f_plusplus/tests/diffvtu.py "$1/$name" "$2/$name" $3 $4
     done
 }
