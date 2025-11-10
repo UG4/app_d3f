@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load $UG4_ROOT/apps/app_d3f/tests/common.bash
+load $UG4_ROOT/apps/app_d3f_plusplus/tests/common.bash
 
 @test "henry basic" {
     ug-run "$BATS_DIR/../henry.lua"
