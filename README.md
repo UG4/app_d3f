@@ -1,19 +1,33 @@
 # d3f++ app
 
-d3f++ is the distributed density driven flow library
+d3f++ is the distributed density driven flow library. 
+
+It is provided as an extension for the UG4 toolbox. 
 
 ## Installation
 
-For an installation, see
+First, obtain sources, e.g. using ughub:
 
 ```bash
-pip install foobar
+mkdir d3f-ug4
+cd d3f-ug4
+ughub init
+ughub install d3f_plusplus_app
+ughub git submodule init 
+ughub git submodule update --init 
+```
+
+Second, compile using cmake:
+```bash
+cmake -S . -B mybuild -DCMAKE_BUILD_TYPE=Release -DENABLE_ALL_PLUGINS=ON -DPARALLEL=ON -DJSON=ON -DUSE_JSON=ON -DJSONToolkit=ON
+cmake --build mybuild --parallel
 ```
 
 ## Usage
 
+After install, execute scripts, e.g.,
 ```
-ugshell -ex apps/d3f_plusplus
+ugshell -ex apps/d3f_plusplus_app/henry/henry.lua
 ```
 
 ## Contributing
@@ -27,4 +41,6 @@ A list of contributors is available [here](CONTRIBUTORS.md)
 
 ## License
 
-[EUPL v1.2](LICENSES/EUPL-v1.2.txt)
+The d3f extensions are provided under [EUPL v1.2](LICENSES/EUPL-v1.2.txt).
+
+UG4 is provided under [LGPL v3](https://github.com/UG4/ugcore/blob/master/LICENSE).
