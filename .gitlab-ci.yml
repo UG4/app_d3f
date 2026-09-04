@@ -8,6 +8,7 @@ stages:
 
 include:
 - local: '.gitlab/test-system.yml'
+- local: '.gitlab/test-system-new.yml'
 #- local: '/.gitlab/deploy-pages.yml'
 - local: '.gitlab/deploy-docker.yml'
 - template: Jobs/SAST.gitlab-ci.yml
