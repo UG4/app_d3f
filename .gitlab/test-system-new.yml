@@ -26,7 +26,6 @@
         UG_MPI: "mpi/openmpi-x86_64"
 
 build-system:
-  extends: .system-test-matrix
   stage: test
   image: rockylinux:9.3
   timeout: 4 hours
