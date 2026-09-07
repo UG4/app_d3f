@@ -11,7 +11,11 @@ fig1, ax1 = plt.subplots()
 fig2, ax2 = plt.subplots()
 plots = [ ax, ax1, ax2]
 figs = [fig, fig1, fig2]
-tests = [range(11,15), range(15,18), range(18,21)]
+tests = [
+    range(1,5), range(5,8), range(8,11),      # saturated
+    range(11,15), range(15,18), range(18,21), # unsaturated
+]
+
 ncolors = len(plt.rcParams['axes.prop_cycle'])
 print(plots)
 
@@ -25,7 +29,7 @@ current_color = 0
 # Read and plot each Tracer<i>.txt file
 for k in range(len(plots)):
     for i in tests[k]:
-        filename = f"SC{i}Tracer"
+        filename = f"testSC{i}Tracer"
         if os.path.exists(filename):
             time = []
             value = []
