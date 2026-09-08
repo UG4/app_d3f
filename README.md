@@ -1,8 +1,12 @@
 # d3f++ app
 
+[![GitLab CI Pipeline](https://gitlab.com/ug4-project/apps/app_d3f_plusplus/badges/main/pipeline.svg)](https://gitlab.com/ug4-project/apps/app_d3f_plusplus/-/commits/main)
+
 d3f++ is the distributed density driven flow library. 
 
 It is provided as an extension for the UG4 toolbox. 
+
+
 
 ## Installation
 
