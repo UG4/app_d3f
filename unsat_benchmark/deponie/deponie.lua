@@ -12,7 +12,7 @@ end
 
 
 myParams.path = util.GetParam ("--path", ".", "path for output files")
-myParams.cp_steps = 100 -- do check points every 100 steps.
+myParams.cp_steps = 200 -- do check points every 100 steps.
 myParams.cp_name= myParams.path .. "/CP_Unsaturated"
 myParams.testcase = util.GetParamNumber ("--case", 1, "testcase number")
 myParams.freq = util.GetParamNumber ("--freq", 10, "output frequency")
@@ -40,6 +40,7 @@ YearInSeconds 	= 3.15576e+7 -- seconds
 local myTracerConc = 1.0 -- 1.0 for regular runs, 0.0 for computing the initial pressure field (to avoid tracer transport during the initial pressure computation)
 
 local grid_name = "rectangles11.ugx"
+
 local test_case = myParams.testcase
 
 diffu			= 1e-9
@@ -80,7 +81,7 @@ cp_steps		=  10 --3650000000 --600
 T_stop			= 6.1536e9 --100 Jahre --T_steps*86400
 deltaT			= 1 --T_stop/T_steps
 deltaT_min		= 1e-6
-deltaT_max		= YearInSeconds/12 --(YearInSeconds/12)
+deltaT_max		= YearInSeconds --(YearInSeconds/12)
 dt_start		= 86400 --0,1 Tage --864000
 freqoutput		= 10
 --flow_vel		= 3e-8 	--m/s, wird für RB umgerechnet in kg/s
@@ -120,33 +121,49 @@ function unsaturatedHydroPressure(x,y,t)
 	local x_right = 850--53.125--850
 	local vadose = y0_left + x * (y0_right - y0_left)/(x_right - x_left)
 	if(y < vadose) then return -9810 * (y - vadose)
-	else return math.max(-(y -vadose)*9810, -(y -vadose)*9810)
-	
+	else return math.max(-(y -vadose)*9810, -1795)
 	end
-
 end
 
 local vadose_above_barrier = 42
 
-function unsaturatedHydroPressure0(x,y,t)
+
+
+function unsaturatedHydroPressure0(x,y,t,si)
 	local x_left = 0
 	local x_right = 850--53.125--850
 	local vadose = y0_left + x * (y0_right - y0_left)/(x_right - x_left)
 	local above_barrier = barrier_left + x * (barrier_right - barrier_left)/(x_right - x_left)
+
+	if (y > above_barrier) then return  -1795 end  -- above the barrier, the pressure is constant at -1795 Pa (corresponding to a water level of 0.183 m above the barrier)
+
 	if(y < vadose) then return -9810 * (y - vadose)  end
-	if (y > above_barrier and y < vadose_above_barrier) then return  -(y -vadose_above_barrier)*9810 end ---981.375 end 
-	--if (y > above_barrier) then return  -1000 end ---981.375 end 
-	--if(y < above_barrier and y > vadose) then return -9810 * (y - vadose)  end
-	return -1795
-	--return math.max(-(y -vadose)*9810, -1795.0)-- -981.375
+	-- if (y > above_barrier and y < vadose_above_barrier) then 	return  -(y -vadose_above_barrier)*9810 end ---981.375 end 
+	
+	if(y < above_barrier and y > vadose) then return -9810 * (y - vadose)  end
+	--return -1795
+	return math.max(-(y -vadose)*9810, -1795.0)-- -981.375
+end
+
+function unsaturatedHydroPressure1(x,y,t,si)
+	local x_left = 0
+	local x_right = 850--53.125--850
+	local vadose = y0_left + x * (y0_right - y0_left)/(x_right - x_left)
+	
+	-- if (y < vadose) then return -9810 * (y - vadose) end
+
+	-- if (y > 40) then return  0.0 end 
+	if (si==1) then return math.max(-(y -vadose)*9810, 0.0) end
+	return 1000.0
+	
 end
 
 
-local use_unsaturated_model = true
+local use_unsaturated_model = false
 if (use_unsaturated_model) then
 	myInitialP = unsaturatedHydroPressure
 else 
-	myInitialP = unsaturatedHydroPressure -- check if this is correct, maybe it should be unsaturatedHydroPressure
+	myInitialP = unsaturatedHydroPressure1 -- check if this is correct, maybe it should be unsaturatedHydroPressure
 end
 
 function HydroPressuredepth_Left(x,y,t) if y < y0_left then return true, -9810 * (y - y0_left) 
@@ -164,11 +181,17 @@ else return false, -1 end end
 --	if y<40 then return 0 end
 --end
 
-function initial_Tracer(x,y,t)
+function initial_Tracer(x,y,t,si)
 	local y_grenze = -0.025 * (x-50) + 41.5 --42.793
     if y >= y_grenze then return myTracerConc
     else return 0.0
     end
+end
+
+function initial_TracerBySubset(x,y,t,si)
+    if ((si==3) or (si==7)) then return myTracerConc
+    else return 0.0
+	end
 end
 
 -----------------------------------------
@@ -208,7 +231,7 @@ problem =
 		permeability 	=  	1.019e-12,
 		alphaL			= 	d_long,
 		alphaT			= 	d_trans,
-		upwind 			= 	"partial",	-- no, partial, full 
+		upwind 			= 	upwindmethod,	-- no, partial, full 
 		boussinesq		= 	true,		-- true (no/less salt), false (with salt)/Einheiten Ausgabe Problem
 		
 		unsat = {
@@ -217,7 +240,7 @@ problem =
 				{ uid = "@unsat",
 				  type = "vanGenuchten",
 				  thetaS = 1.0, thetaR =0.2,
-				  alpha = 1.4e-4, 
+				  alpha = 1.4e-3, 
 				  n = 3.0, 
 				  m = 1.0 - 1.0 / 3.0, 
 				  Ksat= 1.0
@@ -287,8 +310,7 @@ transport =
         Kd 				= Kd_Tracer, --0.0,
 		porosity		= poro,
 		
-        
-		initial = "initial_Tracer", 
+		initial = "initial_TracerBySubset", 
 		
 		boundary = nil,  -- will be set below if fixedTracer is true or false.
 			
@@ -312,7 +334,7 @@ transport =
 			type		= "standard",
 			iterations	= 128,			-- number of iterations
 			absolute	= 1e-12,			-- absolut value of defact to be reached; usually 1e-6 - 1e-9
-			reduction	= 1e-12,	--12	-- reduction factor of defect to be reached; usually 1e-6 - 1e-7
+			reduction	= 1e-6,	--12	-- reduction factor of defect to be reached; usually 1e-6 - 1e-7
 			verbose		= true			-- print convergence rates if true
 		},
 
@@ -336,7 +358,7 @@ transport =
 			convCheck = {
 				type		= "standard",
 				iterations	= 50,		-- number of iterations
-				absolute	= 1e-12,	-- absolut value of defact to be reached; usually 1e-8 - 1e-10 (must be stricter / less than in newton section)
+				absolute	= 1e-10,	-- absolut value of defact to be reached; usually 1e-8 - 1e-10 (must be stricter / less than in newton section)
 				reduction	= 1e-8,	--12	-- reduction factor of defect to be reached; usually 1e-7 - 1e-8 (must be stricter / less than in newton section)
 				verbose		= true,		-- print convergence rates if true
 			}
@@ -358,9 +380,10 @@ transport =
 		limexDesc = {
      		nstages = 2,
      		steps = {1,2,3,4},
-     		tol   = 1e-2,
+     		tol   = 1e-3,
      		debugOPT = false,
-     --spacesOPT = "Scaled_GridFunction"
+     		
+			--spacesOPT = "Scaled_GridFunction"
 	 		dampScheideggerOPT = 0.0,
 	 		partialVeloMaskOPT = 1,
 			conservative = false
@@ -425,15 +448,22 @@ transport =
 
 
 if myParams.fixedTracer then
+
+	-- This is a computation of the initial pressure field with a fixed tracer concentration. The tracer is fixed to myTracerConc in the upper parts of the domain and to 0.0 in the lower parts of the domain. 
+	-- This allows to compute the initial pressure field without any tracer transport.	
+	
+	problem.time.dtmax = 5.0*YearInSeconds -- 1 year time step for the initial pressure computation.	
+	problem.time.limexDesc.tol = 1e-2 -- 1% tolerance for the time stepper
+
 	-- Fix tracer by Dirchlet b.c (this allows to restart from a check-point later on.)
 	
 	 problem.transport[1].boundary = {
 		-- Fix in all subsets.
 		-- Upper parts of the domain are fixed to myTracerConc.
 		{ cmp = "Tracer", type = "level", 	bnd = "Deponie", value = myTracerConc},
-		{ cmp = "Tracer", type = "level", 	bnd = "Entw", value = myTracerConc},
 		{ cmp = "Tracer", type = "level", 	bnd = "Recharge2", value = myTracerConc},	-- top of Deponie.
 		-- Lower parts of the domain are fixed to 0.0.
+		{ cmp = "Tracer", type = "level", 	bnd = "Entw", value = 0.0},
 		{ cmp = "Tracer", type = "level", 	bnd = "GWL", value = 0.0},
 		{ cmp = "Tracer", type = "level", 	bnd = "GeolBarriere", value = 0.0},	
 		{ cmp = "Tracer", type = "level", 	bnd = "Recharge", value = 0.0},	
@@ -441,8 +471,8 @@ if myParams.fixedTracer then
 		{ cmp = "Tracer", type = "level", 	bnd = "Outflow", value = 0.0},	
 		
 	}
-		
-	problem.time.limexDesc.tol = 1e-2 -- 1% tolerance for the time stepper
+	
+
 
 
 else
